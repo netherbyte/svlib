@@ -8,6 +8,19 @@
     <artifactId>svlib</artifactId>
     <version>1.0.0</version>
 
+    <repositories>
+        <repository>
+            <id>BasicCorruption-Netherbyte</id>
+            <url>https://packagecloud.io/BasicCorruption/Netherbyte/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -19,7 +32,7 @@
         <dependency>
             <groupId>com.netherbyte</groupId>
             <artifactId>nbl4j</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.2</version>
         </dependency>
 
     </dependencies>
