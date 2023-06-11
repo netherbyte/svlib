@@ -171,76 +171,80 @@ public class Version {
      * @return Version
      */
     public static Version parse(String x) {
-        // i would like to use regex but i hate writing regex expressions
-        // "let the intern do it" -sid
-        // but there is no intern
+        try {
+            // i would like to use regex but i hate writing regex expressions
+            // "let the intern do it" -sid
+            // but there is no intern
 
-        final String regex = "[0-9]?.?[0-9]?.?[0-9]?[-|[0-9]]?[alpha|beta|dev|pre|rc]?.?[0-9]";
-        // dont know how to use this regex so i have to use the manual way
+            final String regex = "[0-9]?.?[0-9]?.?[0-9]?[-|[0-9]]?[alpha|beta|dev|pre|rc]?.?[0-9]";
+            // dont know how to use this regex so i have to use the manual way
 
-        // split into 2 parts
-        final String[] a = x.split("-");
-        if (a.length == 1) {
-            // the version is something like 1.0.0.0
-            final String[] b = a[0].split("\\.");
-            switch (b.length) {
-                case 1 -> {return new Version(Integer.parseInt(b[0]));}
-                case 2 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]));}
-                case 3 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]), Integer.parseInt(b[2]));}
-                case 4 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]), Integer.parseInt(b[2]), Integer.parseInt(b[3]));}
+            // split into 2 parts
+            final String[] a = x.split("-");
+            if (a.length == 1) {
+                // the version is something like 1.0.0.0
+                final String[] b = a[0].split("\\.");
+                switch (b.length) {
+                    case 1 -> {return new Version(Integer.parseInt(b[0]));}
+                    case 2 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]));}
+                    case 3 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]), Integer.parseInt(b[2]));}
+                    case 4 -> {return new Version(Integer.parseInt(b[0]), Integer.parseInt(b[1]), Integer.parseInt(b[2]), Integer.parseInt(b[3]));}
 
+                }
+            } else if (a.length == 2) {
+                // the version is something like 1.0.0-alpha.1
+                int b1 = -1;
+                int b2 = -1;
+                int b3 = -1;
+                final String[] b = a[0].split("\\.");
+                switch (b.length) {
+                    case 1 -> b1 = Integer.parseInt(b[0]);
+                    case 2 -> {
+                        b1 = Integer.parseInt(b[0]);
+                        b2 = Integer.parseInt(b[1]);
+                    }
+                    case 3 -> {
+                        b1 = Integer.parseInt(b[0]);
+                        b2 = Integer.parseInt(b[1]);
+                        b3 = Integer.parseInt(b[2]);
+                    }
+                }
+                String c1 = null;
+                int c2 = -1;
+                final String[] c = a[1].split("\\.");
+                switch (c.length) {
+                    case 1 -> {
+                        c1 = c[0];
+                        return switch (c1) {
+                            case "alpha" -> new Version(b1, b2, b3, new Channel(Channel.ALPHA));
+                            case "beta" -> new Version(b1, b2, b3, new Channel(Channel.BETA));
+                            case "dev" -> new Version(b1, b2, b3, new Channel(Channel.DEVELOPMENT));
+                            case "pre" -> new Version(b1, b2, b3, new Channel(Channel.PRE_RELEASE));
+                            case "rc" -> new Version(b1, b2, b3, new Channel(Channel.RELEASE_CANDIDATE));
+                            default -> new Version(b1, b2, b3, new Channel(Channel.UNDEFINED));
+                        };
+                    }
+                    case 2 -> {
+                        c1 = c[0];
+                        c2 = Integer.parseInt(c[1]);
+                        return switch (c1) {
+                            case "alpha" -> new Version(b1, b2, b3, new Channel(Channel.ALPHA), c2);
+                            case "beta" -> new Version(b1, b2, b3, new Channel(Channel.BETA), c2);
+                            case "dev" -> new Version(b1, b2, b3, new Channel(Channel.DEVELOPMENT), c2);
+                            case "pre" -> new Version(b1, b2, b3, new Channel(Channel.PRE_RELEASE), c2);
+                            case "rc" -> new Version(b1, b2, b3, new Channel(Channel.RELEASE_CANDIDATE), c2);
+                            default -> new Version(b1, b2, b3, new Channel(Channel.UNDEFINED), c2);
+                        };
+                    }
+                }
+            } else {
+                logger.error("Failed to parse version: " + x + "\r\nDoes it use SemVer 2.0.0?");
+                throw new IllegalArgumentException();
             }
-        } else if (a.length == 2) {
-            // the version is something like 1.0.0-alpha.1
-            int b1 = -1;
-            int b2 = -1;
-            int b3 = -1;
-            final String[] b = a[0].split("\\.");
-            switch (b.length) {
-                case 1 -> b1 = Integer.parseInt(b[0]);
-                case 2 -> {
-                    b1 = Integer.parseInt(b[0]);
-                    b2 = Integer.parseInt(b[1]);
-                }
-                case 3 -> {
-                    b1 = Integer.parseInt(b[0]);
-                    b2 = Integer.parseInt(b[1]);
-                    b3 = Integer.parseInt(b[2]);
-                }
-            }
-            String c1 = null;
-            int c2 = -1;
-            final String[] c = a[1].split("\\.");
-            switch (c.length) {
-                case 1 -> {
-                    c1 = c[0];
-                    return switch (c1) {
-                        case "alpha" -> new Version(b1, b2, b3, new Channel(Channel.ALPHA));
-                        case "beta" -> new Version(b1, b2, b3, new Channel(Channel.BETA));
-                        case "dev" -> new Version(b1, b2, b3, new Channel(Channel.DEVELOPMENT));
-                        case "pre" -> new Version(b1, b2, b3, new Channel(Channel.PRE_RELEASE));
-                        case "rc" -> new Version(b1, b2, b3, new Channel(Channel.RELEASE_CANDIDATE));
-                        default -> new Version(b1, b2, b3, new Channel(Channel.UNDEFINED));
-                    };
-                }
-                case 2 -> {
-                    c1 = c[0];
-                    c2 = Integer.parseInt(c[1]);
-                    return switch (c1) {
-                        case "alpha" -> new Version(b1, b2, b3, new Channel(Channel.ALPHA), c2);
-                        case "beta" -> new Version(b1, b2, b3, new Channel(Channel.BETA), c2);
-                        case "dev" -> new Version(b1, b2, b3, new Channel(Channel.DEVELOPMENT), c2);
-                        case "pre" -> new Version(b1, b2, b3, new Channel(Channel.PRE_RELEASE), c2);
-                        case "rc" -> new Version(b1, b2, b3, new Channel(Channel.RELEASE_CANDIDATE), c2);
-                        default -> new Version(b1, b2, b3, new Channel(Channel.UNDEFINED), c2);
-                    };
-                }
-            }
-        } else {
-            logger.error("Failed to parse version: " + x + "\r\nDoes it use SemVer 2.0.0?");
-            throw new IllegalArgumentException();
+            return null;
+        } catch (Exception e) {
+            return new Version(x);
         }
-        return null;
     }
 
 
